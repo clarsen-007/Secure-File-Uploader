@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Admin Console + File Storage (v{{ version }})</h3>
+<p>Welcome, {{ current_user }}.</p>
+<p>Please note: All uploaded files are scanned for viruses, which may cause the upload process to take some time...</p>
+<p>Kindly be patient - your files will appear once the scan is complete.</p>
+
+<div class="row gy-4">
+  <div class="col-md-6">
+    <h5>Upload File</h5>
+    <form method="post" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="mb-2"><input name="file" type="file" class="form-control" required></div>
+      <button class="btn btn-success" type="submit">Upload</button>
+    </form>
+
+    <hr>
+    <h5>Your Files</h5>
+    <ul class="list-group">
+      {% for f in files %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ f }}
+          <div>
+            <a class="btn btn-sm btn-primary" href="{{ url_for('download_file', filename=f) }}">Download</a>
+            <form style="display:inline" method="post" action="{{ url_for('delete_file') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="del_file" value="{{ f }}">
+              <button class="btn btn-sm btn-danger" type="submit"
+                      onclick="return confirm('Delete file?')">Delete</button>
+            </form>
+          </div>
+        </li>
+      {% else %}
+        <li class="list-group-item">No files</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {# ✅ User-management UI visible ONLY to admin #}
+  {% if session.get('username') == 'admin' %}
+  <div class="col-md-6">
+    <h5>Admin: Add User</h5>
+    <form method="post" action="{{ url_for('web_add_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="mb-2"><input name="new_username" class="form-control" placeholder="username" required></div>
+      <div class="mb-2"><input name="new_password" type="password" class="form-control"
+                              placeholder="password (min 8 chars)" required></div>
+      <button class="btn btn-success" type="submit">Add User</button>
+    </form>
+
+    <hr>
+    <h5>Change Password</h5>
+    <form method="post" action="{{ url_for('web_change_password') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="mb-2"><input name="chg_username" class="form-control" placeholder="username" required></div>
+      <div class="mb-2"><input name="chg_new_password" type="password" class="form-control"
+                              placeholder="new password" required></div>
+      <button class="btn btn-warning" type="submit">Change</button>
+    </form>
+
+    <hr>
+    <h5>Delete User</h5>
+    <form method="post" action="{{ url_for('web_delete_user') }}"
+          onsubmit="return confirm('Delete user?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="mb-2"><input name="del_username" class="form-control" placeholder="username" required></div>
+      <button class="btn btn-danger" type="submit">Delete User</button>
+    </form>
+
+    <hr>
+    <h5>All users</h5>
+    <ul class="list-group">
+      {% for u in users %}
+        <li class="list-group-item">{{ u }}</li>
+      {% else %}
+        <li class="list-group-item">No users</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
